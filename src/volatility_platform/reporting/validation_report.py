@@ -18,6 +18,7 @@ def target_table(
     top_two = float(best["top_two_share"]) if best is not None else float("nan")
     imp_roll = float(best["improvement_vs_rolling_21"]) if best is not None else float("nan")
     imp_ewma = float(best["improvement_vs_ewma"]) if best is not None else float("nan")
+    imp_garch = float(best["improvement_vs_garch"]) if best is not None else float("nan")
     var95 = var_results[var_results["confidence_level"] == 0.95]
     var99 = var_results[var_results["confidence_level"] == 0.99]
     breach95 = float(var95["breach_rate"].mean()) if not var95.empty else float("nan")
@@ -38,6 +39,21 @@ def target_table(
     capture = (
         float(regime_results["top_decile_capture"].mean())
         if not regime_results.empty
+        else float("nan")
+    )
+    precision = (
+        float(regime_results["precision"].mean())
+        if "precision" in regime_results and not regime_results.empty
+        else float("nan")
+    )
+    f1_score = (
+        float(regime_results["f1_score"].mean())
+        if "f1_score" in regime_results and not regime_results.empty
+        else float("nan")
+    )
+    false_flag = (
+        float(regime_results["false_high_flag_rate"].mean())
+        if "false_high_flag_rate" in regime_results and not regime_results.empty
         else float("nan")
     )
     scale_rows = (
@@ -65,6 +81,11 @@ def target_table(
             status(imp_roll >= 0.12),
         ),
         ("QLIKE improvement vs EWMA >= 5%", f"{imp_ewma * 100:.2f}%", status(imp_ewma >= 0.05)),
+        (
+            "QLIKE improvement vs GARCH >= 5%",
+            f"{imp_garch * 100:.2f}%",
+            status(imp_garch >= 0.05),
+        ),
         ("Best/top-2 model across >= 70% assets", f"{top_two * 100:.2f}%", status(top_two >= 0.70)),
         (
             "95% VaR breach rate 4.7%-5.3%",
@@ -88,6 +109,17 @@ def target_table(
         ),
         ("ES tail-loss ratio 0.9-1.1", f"{es_ratio:.3f}", status(0.90 <= es_ratio <= 1.10)),
         ("Top-decile vol capture >= 75%", f"{capture * 100:.2f}%", status(capture >= 0.75)),
+        (
+            "High-vol precision >= 40%",
+            f"{precision * 100:.2f}%",
+            status(precision >= 0.40),
+        ),
+        ("High-vol F1 >= 50%", f"{f1_score * 100:.2f}%", status(f1_score >= 0.50)),
+        (
+            "False high-vol flag rate <= 60%",
+            f"{false_flag * 100:.2f}%",
+            status(false_flag <= 0.60),
+        ),
         ("SQL handles 1m+ rows", f"{scale_rows:,}", status(scale_rows >= 1_000_000)),
         (
             "Dashboard queries < 1 sec",

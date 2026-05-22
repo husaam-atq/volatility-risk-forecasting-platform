@@ -5,7 +5,7 @@ import warnings
 import numpy as np
 import pandas as pd
 
-from volatility_platform.config import ANNUALISATION, TRAIN_END, VALIDATION_END
+from volatility_platform.config import ANNUALISATION, TRAIN_END
 
 
 def _fit_arch_params(train_returns: pd.Series, kind: str) -> tuple[float, float, float, float]:
@@ -15,13 +15,15 @@ def _fit_arch_params(train_returns: pd.Series, kind: str) -> tuple[float, float,
         scaled = train_returns.dropna() * 100.0
         if len(scaled) < 250:
             raise ValueError("too few returns for GARCH fit")
-        p, o, q = (1, 0, 1) if kind == "garch_11" else (1, 1, 1)
+
+        p, o, q = (1, 0, 1) if kind in {"garch_11", "egarch_t"} else (1, 1, 1)
+        vol = "EGARCH" if kind == "egarch_t" else "GARCH"
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             res = arch_model(
                 scaled,
                 mean="Constant",
-                vol="GARCH",
+                vol=vol,
                 p=p,
                 o=o,
                 q=q,
@@ -33,6 +35,8 @@ def _fit_arch_params(train_returns: pd.Series, kind: str) -> tuple[float, float,
         alpha = max(float(params.get("alpha[1]", 0.05)), 0.0)
         beta = max(float(params.get("beta[1]", 0.90)), 0.0)
         gamma = max(float(params.get("gamma[1]", 0.0)), 0.0)
+        if kind == "egarch_t":
+            return omega, alpha, beta, gamma
         if alpha + 0.5 * gamma + beta >= 0.995:
             scale = 0.995 / (alpha + 0.5 * gamma + beta)
             alpha *= scale
@@ -58,17 +62,51 @@ def _recursive_garch_vol(
     return pd.Series(np.sqrt(var) / 100.0 * np.sqrt(ANNUALISATION), index=returns.index)
 
 
+def _recursive_egarch_vol(
+    returns: pd.Series, params: tuple[float, float, float, float]
+) -> pd.Series:
+    omega, alpha, beta, gamma = params
+    values = returns.fillna(0.0).to_numpy() * 100.0
+    var = np.zeros(len(values))
+    var[0] = max(np.nanvar(values[: min(252, len(values))]), 1e-6)
+    expected_abs_z = np.sqrt(2.0 / np.pi)
+    for i in range(1, len(values)):
+        prev_sigma = np.sqrt(max(var[i - 1], 1e-8))
+        z = values[i - 1] / prev_sigma
+        log_var = (
+            omega
+            + beta * np.log(max(var[i - 1], 1e-8))
+            + alpha * (abs(z) - expected_abs_z)
+            + gamma * z
+        )
+        var[i] = float(np.clip(np.exp(log_var), 1e-8, 400.0))
+    return pd.Series(np.sqrt(var) / 100.0 * np.sqrt(ANNUALISATION), index=returns.index)
+
+
 def garch_forecasts(model_frame: pd.DataFrame, returns: pd.DataFrame) -> pd.DataFrame:
     rows = []
     for asset, asset_returns in returns.sort_values(["asset", "date"]).groupby("asset"):
         series = asset_returns.set_index("date")["simple_return"]
         trailing_20_var_sum = series.pow(2).rolling(20, min_periods=20).sum()
         train = series[series.index <= pd.Timestamp(TRAIN_END)]
-        train_valid = series[series.index <= pd.Timestamp(VALIDATION_END)]
-        for model in ["garch_11", "gjr_garch", "garch_rolling_update", "gjr_rolling_update"]:
-            fit_kind = "garch_11" if model in {"garch_11", "garch_rolling_update"} else "gjr_garch"
-            params = _fit_arch_params(train if fit_kind == "garch_11" else train_valid, fit_kind)
-            vol = _recursive_garch_vol(series, params)
+        for model in [
+            "garch_11",
+            "gjr_garch",
+            "egarch_t",
+            "garch_rolling_update",
+            "gjr_rolling_update",
+        ]:
+            fit_kind = (
+                "garch_11"
+                if model in {"garch_11", "garch_rolling_update"}
+                else "egarch_t" if model == "egarch_t" else "gjr_garch"
+            )
+            params = _fit_arch_params(train, fit_kind)
+            vol = (
+                _recursive_egarch_vol(series, params)
+                if fit_kind == "egarch_t"
+                else _recursive_garch_vol(series, params)
+            )
             if model.endswith("rolling_update"):
                 next_daily_var = (vol**2) / ANNUALISATION
                 updated_var = (trailing_20_var_sum + next_daily_var) / 21.0
@@ -80,11 +118,7 @@ def garch_forecasts(model_frame: pd.DataFrame, returns: pd.DataFrame) -> pd.Data
                         "forecast_date": vol.index,
                         "forecast_vol": vol.values,
                         "model": model,
-                        "training_window": (
-                            "fixed_params_train_valid"
-                            if fit_kind == "gjr_garch"
-                            else "fixed_params_train"
-                        ),
+                        "training_window": "fixed_params_train",
                     }
                 )
             )

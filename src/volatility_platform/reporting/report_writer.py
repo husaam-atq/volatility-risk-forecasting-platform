@@ -48,6 +48,16 @@ def load_report_inputs(db_path: str | Path = DATABASE_PATH) -> dict[str, pd.Data
             "quality": con.execute("SELECT * FROM data_quality_checks").fetchdf(),
             "counts": table_row_counts(db_path),
             "portfolio": con.execute("SELECT * FROM v_portfolio_risk_summary").fetchdf(),
+            "source": con.execute("""
+                SELECT
+                    source AS data_source,
+                    COUNT(*) AS raw_price_rows,
+                    MIN(date) AS first_date,
+                    MAX(date) AS last_date
+                FROM raw_prices
+                GROUP BY source
+                ORDER BY raw_price_rows DESC
+                """).fetchdf(),
         }
 
 
@@ -58,10 +68,16 @@ def write_model_comparison_report(
     lines = [
         "# Model Comparison Report",
         "",
+        "## Data Source",
+        "",
+        _markdown_table(inputs["source"]),
+        "",
+        "The fixed universe is evaluated as a complete panel; assets and periods are not selected based on model performance.",
+        "",
         "## Executive Summary",
         "",
         "The modelling layer compares rolling realised-volatility baselines, EWMA, GARCH-family models, tree-based regressors and ensemble forecasts on identical out-of-sample dates.",
-        "QLIKE is treated as the primary metric because it is robust for volatility forecast comparison and penalises variance underestimation.",
+        "QLIKE is treated as the primary metric because it is robust for volatility forecast comparison and penalises variance underestimation. The implementation uses the standard non-negative variance-ratio loss.",
         "",
         "## Aggregate Test-Period Ranking",
         "",
@@ -114,9 +130,13 @@ def write_risk_backtest_report(inputs: dict[str, pd.DataFrame]) -> pd.DataFrame:
     lines = [
         "# Risk Backtest Report",
         "",
+        "## Data Source",
+        "",
+        _markdown_table(inputs["source"]),
+        "",
         "## Scope",
         "",
-        "Forecast volatility is converted into one-day 95% and 99% VaR and Expected Shortfall estimates using validation-period empirical residual calibration.",
+        "Forecast volatility is converted into one-day 95% and 99% VaR and Expected Shortfall estimates using validation-period Student-t residual calibration with five degrees of freedom.",
         "Calibration is performed before the test period and is not fitted to final test breaches.",
         "",
         "## Aggregate VaR and ES Results",
@@ -158,7 +178,7 @@ def write_risk_backtest_report(inputs: dict[str, pd.DataFrame]) -> pd.DataFrame:
         "## Limitations",
         "",
         "- Daily VaR backtests have limited power, especially at the 99% level.",
-        "- Empirical residual calibration improves coverage but still depends on validation-period representativeness.",
+        "- Student-t residual calibration improves coverage but still depends on validation-period representativeness.",
         "- Asset-level VaR ignores transaction costs, liquidity effects and intraday gap risk.",
     ]
     (REPORTS_DIR / "risk_backtest_report.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
@@ -184,6 +204,10 @@ def write_validation_report(
     )
     lines = [
         "# Validation Report",
+        "",
+        "## Data Source",
+        "",
+        _markdown_table(inputs["source"]),
         "",
         "## Target Achievement Summary",
         "",
@@ -213,7 +237,7 @@ def write_validation_report(
         "",
         "## Regime Detection Checks",
         "",
-        "Regime metrics report top-decile volatility capture, false high-volatility flag rate, persistence and transition counts.",
+        "Regime metrics report top-decile volatility capture, precision, recall, F1, false-positive rate, persistence and transition counts.",
         "",
         "## Dashboard Query Checks",
         "",
@@ -243,10 +267,20 @@ def update_readme(
     var99 = inputs["var_results"][inputs["var_results"]["confidence_level"] == 0.99]
     capture = inputs["regime"]["top_decile_capture"].mean()
     false_flag = inputs["regime"]["false_high_flag_rate"].mean()
+    precision = inputs["regime"]["precision"].mean()
+    f1_score = inputs["regime"]["f1_score"].mean()
     max_rows = int(inputs["bench"]["benchmark_rows"].max())
     dashboard_p95 = inputs["bench"][
         inputs["bench"]["query_name"] != "one_million_row_synthetic_scale"
     ]["p95_ms"].max()
+    source_label = ", ".join(inputs["source"]["data_source"].astype(str).tolist())
+    first_date = inputs["source"]["first_date"].min()
+    last_date = inputs["source"]["last_date"].max()
+    cv_ready = (
+        best["improvement_vs_rolling_21"] >= 0.08
+        and best["improvement_vs_ewma"] >= 0.05
+        and best["top_two_share"] >= 0.70
+    )
     lines = [
         "# Volatility Risk Forecasting Platform",
         "",
@@ -278,6 +312,8 @@ def update_readme(
         "",
         "## Headline Results",
         "",
+        f"- Latest generated report data source: `{source_label}`.",
+        f"- Data date range: {first_date} to {last_date}.",
         f"- Best aggregate test-period model by QLIKE: `{best['model']}`.",
         f"- Average QLIKE improvement versus rolling 21-day volatility: {best['improvement_vs_rolling_21'] * 100:.2f}%.",
         f"- Average QLIKE improvement versus EWMA: {best['improvement_vs_ewma'] * 100:.2f}%.",
@@ -286,6 +322,8 @@ def update_readme(
         f"- Average 95% VaR breach rate across test results: {var95['breach_rate'].mean() * 100:.2f}%.",
         f"- Average 99% VaR breach rate across test results: {var99['breach_rate'].mean() * 100:.2f}%.",
         f"- Average top-decile volatility capture: {capture * 100:.2f}%.",
+        f"- Average high-volatility precision: {precision * 100:.2f}%.",
+        f"- Average high-volatility F1 score: {f1_score * 100:.2f}%.",
         f"- Average false high-volatility flag rate: {false_flag * 100:.2f}%.",
         f"- Largest SQL scale benchmark: {max_rows:,} rows.",
         f"- Dashboard query p95 latency: {dashboard_p95:.2f} ms.",
@@ -372,6 +410,7 @@ def update_readme(
         "",
         "The default pipeline uses `data/sample_prices.csv` so the repository runs offline without API keys.",
         "Live data can be requested with `--live`, in which case downloaded files are cached under `data/raw/` and excluded from version control.",
+        "Generated reports explicitly state whether they were produced from live yfinance data or the sample fallback.",
         "The fixed universe is SPY, QQQ, IWM, TLT, GLD, USO, AAPL, MSFT, NVDA and JPM.",
         "",
         "## Methodology",
@@ -448,12 +487,23 @@ def update_readme(
         "- Add model-risk challenger reports and stability monitoring.",
         "- Add portfolio optimisation constraints and user-defined dashboard weights.",
         "",
-        "## CV Bullet Examples",
-        "",
-        f"- Built a SQL-backed volatility forecasting and market risk platform using Python, DuckDB and Streamlit, comparing rolling, EWMA, GARCH-family and machine-learning models across a multi-asset universe; best aggregate model improved out-of-sample QLIKE by {best['improvement_vs_rolling_21'] * 100:.2f}% vs rolling volatility and {best['improvement_vs_ewma'] * 100:.2f}% vs EWMA.",
-        f"- Designed DuckDB SQL tables and validation views for prices, returns, realised volatility, forecasts, VaR/ES backtests and breach analytics, supporting reproducible risk reports and dashboard queries across {int(inputs['counts']['row_count'].sum()):,}+ persisted rows plus a {max_rows:,}-row scale benchmark.",
-        "- Implemented validation-period empirical residual calibration for volatility-scaled VaR/ES, with Kupiec and Christoffersen backtests reported at asset/model level rather than cherry-picked.",
-        "",
+        *(
+            [
+                "## CV Bullet Examples",
+                "",
+                f"- Built a SQL-backed volatility forecasting and market risk platform using Python, DuckDB and Streamlit, comparing rolling, EWMA, GARCH-family, HAR-RV and machine-learning models across a fixed multi-asset universe; best aggregate model improved out-of-sample QLIKE by {best['improvement_vs_rolling_21'] * 100:.2f}% vs rolling volatility and {best['improvement_vs_ewma'] * 100:.2f}% vs EWMA.",
+                f"- Designed DuckDB SQL tables and validation views for prices, returns, realised volatility, forecasts, VaR/ES backtests and breach analytics, supporting reproducible risk reports and dashboard queries across {int(inputs['counts']['row_count'].sum()):,}+ persisted rows plus a {max_rows:,}-row scale benchmark.",
+                "- Implemented validation-period Student-t residual calibration for volatility-scaled VaR/ES, with Kupiec and Christoffersen backtests reported at asset/model level rather than selected examples.",
+                "",
+            ]
+            if cv_ready
+            else [
+                "## CV Readiness Note",
+                "",
+                "CV bullet examples are intentionally withheld in this generated README because the latest run has not met the stricter forecast-improvement threshold against the rolling volatility baseline.",
+                "",
+            ]
+        ),
         "## Interview Talking Points",
         "",
         "- Why QLIKE is the primary volatility metric and why RMSE alone is not enough.",

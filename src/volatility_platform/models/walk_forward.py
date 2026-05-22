@@ -16,6 +16,7 @@ from volatility_platform.models.ensemble import (
 )
 from volatility_platform.models.ewma import ewma_forecasts
 from volatility_platform.models.garch_models import garch_forecasts
+from volatility_platform.models.har_models import har_forecasts
 from volatility_platform.models.ml_models import ml_forecasts
 
 
@@ -94,6 +95,7 @@ def run_forecasting_pipeline(db_path: str | Path = DATABASE_PATH) -> dict[str, o
         baseline_forecasts(model_frame),
         ewma_forecasts(model_frame, returns),
         garch_forecasts(model_frame, returns),
+        har_forecasts(model_frame),
     ]
     ml = ml_forecasts(model_frame)
     if not ml.empty:
@@ -107,6 +109,9 @@ def run_forecasting_pipeline(db_path: str | Path = DATABASE_PATH) -> dict[str, o
             "ewma_rolling_update",
             "garch_rolling_update",
             "gjr_rolling_update",
+            "har_rv_log_ridge",
+            "har_rv_market_log_ridge",
+            "har_rv_market_huber",
             "ewma_tuned",
             "garch_11",
             "gjr_garch",
@@ -132,7 +137,7 @@ def run_forecasting_pipeline(db_path: str | Path = DATABASE_PATH) -> dict[str, o
     with duckdb.connect(str(db_path)) as con:
         con.execute("DELETE FROM volatility_forecasts")
         con.register("_forecasts", all_forecasts)
-        con.execute("INSERT INTO volatility_forecasts SELECT * FROM _forecasts")
+        con.execute("INSERT INTO volatility_forecasts BY NAME SELECT * FROM _forecasts")
         con.unregister("_forecasts")
         con.execute("DELETE FROM model_metrics")
         con.register("_metrics", metrics)

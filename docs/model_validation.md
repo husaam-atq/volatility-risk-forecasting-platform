@@ -4,13 +4,15 @@
 
 The project reports RMSE, MAE, QLIKE, MAPE, correlation and directional accuracy. QLIKE is the primary ranking metric because volatility forecasts are variance forecasts and the realised volatility proxy is noisy.
 
+QLIKE is calculated as `realised_variance / forecast_variance - log(realised_variance / forecast_variance) - 1`. A perfect forecast has zero loss, which makes percentage improvements against baselines interpretable.
+
 ## Model Ranking
 
 Models are ranked within each asset on identical test-period target dates. Aggregate rankings use all assets in the fixed universe.
 
 ## VaR And ES Backtesting
 
-VaR and ES estimates are created from volatility forecasts using validation-period empirical residual calibration. The test period is reserved for final backtesting.
+VaR and ES estimates are created from volatility forecasts using validation-period Student-t residual calibration. The test period is reserved for final backtesting.
 
 ## Kupiec Test Interpretation
 

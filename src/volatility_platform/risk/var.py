@@ -5,7 +5,7 @@ from pathlib import Path
 import duckdb
 import numpy as np
 import pandas as pd
-from scipy.stats import norm
+from scipy.stats import norm, t
 
 from volatility_platform.backtesting.breach_analysis import (
     average_days_between_breaches,
@@ -20,6 +20,17 @@ from volatility_platform.database.run_sql import run_sql_directory
 
 def gaussian_var(alpha: float, sigma: float) -> float:
     return float(norm.ppf(alpha) * sigma)
+
+
+def student_t_residual_quantile(
+    alpha: float, residuals: pd.Series, df: float = 5.0
+) -> tuple[float, float]:
+    scale = float(residuals.std(ddof=1) / np.sqrt(df / (df - 2.0)))
+    scale = max(scale, 1e-8)
+    q_standard = float(t.ppf(alpha, df))
+    q = q_standard * scale
+    es = -scale * (t.pdf(q_standard, df) * (df + q_standard**2)) / ((df - 1.0) * alpha)
+    return q, float(min(es, q))
 
 
 def calculate_var_es(
@@ -48,9 +59,7 @@ def calculate_var_es(
                 residual = validation["realised_return"] / validation["daily_sigma"].clip(
                     lower=1e-8
                 )
-                q = float(np.quantile(residual, alpha))
-                tail = residual[residual <= q]
-                es_residual = float(tail.mean()) if len(tail) else q * 1.15
+                q, es_residual = student_t_residual_quantile(alpha, residual, df=5.0)
             else:
                 q = float(norm.ppf(alpha))
                 es_residual = float(-norm.pdf(norm.ppf(alpha)) / alpha)
@@ -63,7 +72,7 @@ def calculate_var_es(
                     "forecast_date": row["forecast_date"],
                     "target_date": row["target_date"],
                     "confidence_level": confidence,
-                    "method": "validation_empirical_residual",
+                    "method": "validation_student_t_residual_df5",
                     "period": row["period"],
                 }
                 var_rows.append({**common, "var_return": var_return})
@@ -75,7 +84,7 @@ def calculate_var_es(
                         "model": model,
                         "target_date": row["target_date"],
                         "confidence_level": confidence,
-                        "method": "validation_empirical_residual",
+                        "method": "validation_student_t_residual_df5",
                         "realised_return": row["realised_return"],
                         "var_return": var_return,
                         "es_return": es_return,

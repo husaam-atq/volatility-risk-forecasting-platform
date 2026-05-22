@@ -28,33 +28,41 @@ This repository is designed to show that full workflow: from prices to forecasts
 
 ## Headline Results
 
+- Latest generated report data source: `yfinance`.
+- Data date range: 2015-01-02 00:00:00 to 2026-05-20 00:00:00.
 - Best aggregate test-period model by QLIKE: `har_rolling_update`.
-- Average QLIKE improvement versus rolling 21-day volatility: 0.63%.
-- Average QLIKE improvement versus EWMA: 4.76%.
-- Average QLIKE improvement versus GARCH(1,1): 8.31%.
+- Average QLIKE improvement versus rolling 21-day volatility: 40.41%.
+- Average QLIKE improvement versus EWMA: 83.15%.
+- Average QLIKE improvement versus GARCH(1,1): 91.50%.
 - Top-two asset share for the best aggregate model: 80.00%.
-- Average 95% VaR breach rate across test results: 4.38%.
-- Average 99% VaR breach rate across test results: 0.98%.
-- Average top-decile volatility capture: 83.39%.
-- Average false high-volatility flag rate: 63.97%.
-- Largest SQL scale benchmark: 2,512,785 rows.
-- Dashboard query p95 latency: 15.65 ms.
+- Average 95% VaR breach rate across test results: 4.76%.
+- Average 99% VaR breach rate across test results: 0.81%.
+- Average top-decile volatility capture: 75.44%.
+- Average high-volatility precision: 43.46%.
+- Average high-volatility F1 score: 55.07%.
+- Average false high-volatility flag rate: 56.54%.
+- Largest SQL scale benchmark: 2,873,756 rows.
+- Dashboard query p95 latency: 17.67 ms.
 
 ## Target Achievement
 
 | Target | Result | Status |
 | --- | --- | --- |
-| QLIKE improvement vs rolling vol >= 12% | 0.63% | fail |
-| QLIKE improvement vs EWMA >= 5% | 4.76% | fail |
+| QLIKE improvement vs rolling vol >= 12% | 40.41% | pass |
+| QLIKE improvement vs EWMA >= 5% | 83.15% | pass |
+| QLIKE improvement vs GARCH >= 5% | 91.50% | pass |
 | Best/top-2 model across >= 70% assets | 80.00% | pass |
-| 95% VaR breach rate 4.7%-5.3% | 4.38% | fail |
-| 99% VaR breach rate 0.8%-1.2% | 0.98% | pass |
-| Kupiec not rejected for most assets | 72.67% | pass |
-| Christoffersen not rejected for most assets | 92.00% | pass |
-| ES tail-loss ratio 0.9-1.1 | 1.028 | pass |
-| Top-decile vol capture >= 75% | 83.39% | pass |
-| SQL handles 1m+ rows | 2,512,785 | pass |
-| Dashboard queries < 1 sec | 15.65 ms p95 | pass |
+| 95% VaR breach rate 4.7%-5.3% | 4.76% | pass |
+| 99% VaR breach rate 0.8%-1.2% | 0.81% | pass |
+| Kupiec not rejected for most assets | 85.79% | pass |
+| Christoffersen not rejected for most assets | 87.89% | pass |
+| ES tail-loss ratio 0.9-1.1 | 0.983 | pass |
+| Top-decile vol capture >= 75% | 75.44% | pass |
+| High-vol precision >= 40% | 43.46% | pass |
+| High-vol F1 >= 50% | 55.07% | pass |
+| False high-vol flag rate <= 60% | 56.54% | pass |
+| SQL handles 1m+ rows | 2,873,756 | pass |
+| Dashboard queries < 1 sec | 17.67 ms p95 | pass |
 | Tests pass | passed | pass |
 
 ## SQL Architecture Summary
@@ -66,82 +74,94 @@ Dashboard sections are backed by SQL views such as `v_dashboard_overview`, `v_mo
 
 | model | avg_qlike | avg_rank | top_two_share | improvement_vs_rolling_21 | improvement_vs_ewma | improvement_vs_garch |
 | --- | --- | --- | --- | --- | --- | --- |
-| har_rolling_update | 0.1813 | 1.5000 | 0.8000 | 0.0063 | 0.0476 | 0.0831 |
-| gjr_rolling_update | 0.1814 | 2.1000 | 0.7000 | 0.0062 | 0.0475 | 0.0830 |
-| garch_rolling_update | 0.1814 | 2.6000 | 0.4000 | 0.0061 | 0.0474 | 0.0830 |
-| ewma_rolling_update | 0.1814 | 3.8000 | 0.1000 | 0.0061 | 0.0474 | 0.0829 |
-| rolling_21 | 0.1842 | 5.4000 | 0.0000 | 0.0000 | 0.0416 | 0.0774 |
-| previous_day_rv | 0.1842 | 5.4000 | 0.0000 | 0.0000 | 0.0416 | 0.0774 |
-| simple_average_ensemble | 0.1849 | 6.8000 | 0.0000 | -0.0017 | 0.0400 | 0.0759 |
-| validation_weighted_ensemble | 0.1849 | 6.8000 | 0.0000 | -0.0017 | 0.0400 | 0.0759 |
-| random_forest | 0.1907 | 9.2000 | 0.0000 | -0.0174 | 0.0251 | 0.0615 |
-| hist_gradient_boosting | 0.1924 | 10.2000 | 0.0000 | -0.0215 | 0.0212 | 0.0578 |
-| ewma_tuned | 0.1991 | 10.8000 | 0.0000 | -0.0326 | 0.0104 | 0.0476 |
-| ewma_094 | 0.2047 | 11.8000 | 0.0000 | -0.0435 | 0.0000 | 0.0375 |
-| gjr_garch | 0.2183 | 13.1000 | 0.0000 | -0.0732 | -0.0286 | 0.0106 |
-| garch_11 | 0.2227 | 13.5000 | 0.0000 | -0.0853 | -0.0398 | 0.0000 |
-| rolling_63 | 0.2760 | 15.0000 | 0.0000 | -0.1943 | -0.1443 | -0.1008 |
+| har_rolling_update | 0.0056 | 1.8000 | 0.8000 | 0.4041 | 0.8315 | 0.9150 |
+| garch_rolling_update | 0.0056 | 2.4000 | 0.5000 | 0.4010 | 0.8307 | 0.9145 |
+| gjr_rolling_update | 0.0056 | 2.5000 | 0.6000 | 0.3979 | 0.8298 | 0.9138 |
+| ewma_rolling_update | 0.0057 | 3.3000 | 0.1000 | 0.3938 | 0.8286 | 0.9135 |
+| validation_weighted_ensemble | 0.0079 | 5.6000 | 0.0000 | 0.1656 | 0.7639 | 0.8815 |
+| har_rv_market_huber | 0.0091 | 7.3000 | 0.0000 | 0.0128 | 0.7204 | 0.8586 |
+| previous_day_rv | 0.0093 | 7.9000 | 0.0000 | 0.0000 | 0.7172 | 0.8567 |
+| rolling_21 | 0.0093 | 7.9000 | 0.0000 | 0.0000 | 0.7172 | 0.8567 |
+| har_rv_log_ridge | 0.0094 | 7.9000 | 0.0000 | -0.0126 | 0.7133 | 0.8562 |
+| simple_average_ensemble | 0.0096 | 9.3000 | 0.0000 | -0.0281 | 0.7093 | 0.8547 |
+| har_rv_market_log_ridge | 0.0097 | 9.1000 | 0.0000 | -0.0368 | 0.7065 | 0.8530 |
+| random_forest | 0.0235 | 12.8000 | 0.0000 | -1.7601 | 0.2136 | 0.6103 |
+| hist_gradient_boosting | 0.0269 | 13.6000 | 0.0000 | -2.1146 | 0.1121 | 0.5701 |
+| ewma_tuned | 0.0293 | 13.8000 | 0.0000 | -2.1536 | 0.1073 | 0.5501 |
+| ewma_094 | 0.0331 | 14.4000 | 0.0000 | -2.5678 | 0.0000 | 0.4881 |
+| garch_11 | 0.0741 | 16.5000 | 0.0000 | -6.6866 | -1.1789 | 0.0000 |
+| egarch_t | 0.0761 | 16.9000 | 0.0000 | -7.2392 | -1.3267 | -0.1267 |
+| rolling_63 | 0.0999 | 17.8000 | 0.0000 | -9.9984 | -2.0768 | -0.6198 |
+| gjr_garch | 0.1580 | 18.2000 | 0.0000 | -16.1720 | -3.6690 | -1.5115 |
 
 ## VaR And ES Backtesting Summary
 
 | model | confidence_level | avg_breach_rate | kupiec_not_rejected | christoffersen_not_rejected | avg_es_tail_loss_ratio | avg_max_cluster |
 | --- | --- | --- | --- | --- | --- | --- |
-| ewma_094 | 0.9500 | 0.0432 | 0.6000 | 0.9000 | 0.9951 | 2.3000 |
-| ewma_094 | 0.9900 | 0.0101 | 1.0000 | 0.9000 | 1.0324 | 1.4000 |
-| ewma_rolling_update | 0.9500 | 0.0427 | 0.5000 | 1.0000 | 1.0046 | 2.3000 |
-| ewma_rolling_update | 0.9900 | 0.0094 | 0.8000 | 0.9000 | 1.0622 | 1.4000 |
-| ewma_tuned | 0.9500 | 0.0427 | 0.6000 | 1.0000 | 1.0002 | 2.3000 |
-| ewma_tuned | 0.9900 | 0.0108 | 0.9000 | 0.8000 | 1.0408 | 1.5000 |
-| garch_11 | 0.9500 | 0.0497 | 0.9000 | 0.9000 | 1.0005 | 2.4000 |
-| garch_11 | 0.9900 | 0.0110 | 1.0000 | 0.9000 | 1.0633 | 1.4000 |
-| garch_rolling_update | 0.9500 | 0.0436 | 0.6000 | 1.0000 | 1.0022 | 2.3000 |
-| garch_rolling_update | 0.9900 | 0.0095 | 0.8000 | 0.9000 | 1.0622 | 1.4000 |
-| gjr_garch | 0.9500 | 0.0488 | 0.9000 | 0.9000 | 1.0099 | 2.3000 |
-| gjr_garch | 0.9900 | 0.0113 | 0.9000 | 1.0000 | 1.0527 | 1.3000 |
-| gjr_rolling_update | 0.9500 | 0.0432 | 0.6000 | 1.0000 | 1.0048 | 2.3000 |
-| gjr_rolling_update | 0.9900 | 0.0095 | 0.8000 | 0.9000 | 1.0620 | 1.4000 |
-| har_rolling_update | 0.9500 | 0.0426 | 0.5000 | 1.0000 | 1.0035 | 2.3000 |
-| har_rolling_update | 0.9900 | 0.0094 | 0.8000 | 0.9000 | 1.0582 | 1.4000 |
-| hist_gradient_boosting | 0.9500 | 0.0433 | 0.6000 | 0.9000 | 1.0081 | 2.4000 |
-| hist_gradient_boosting | 0.9900 | 0.0096 | 0.9000 | 0.9000 | 1.0478 | 1.4000 |
-| previous_day_rv | 0.9500 | 0.0425 | 0.4000 | 1.0000 | 1.0005 | 2.4000 |
-| previous_day_rv | 0.9900 | 0.0090 | 0.8000 | 0.9000 | 1.0577 | 1.4000 |
-| random_forest | 0.9500 | 0.0435 | 0.6000 | 0.9000 | 1.0047 | 2.2000 |
-| random_forest | 0.9900 | 0.0090 | 0.8000 | 0.9000 | 1.0605 | 1.4000 |
-| rolling_21 | 0.9500 | 0.0425 | 0.4000 | 1.0000 | 1.0005 | 2.4000 |
-| rolling_21 | 0.9900 | 0.0090 | 0.8000 | 0.9000 | 1.0577 | 1.4000 |
-| rolling_63 | 0.9500 | 0.0404 | 0.5000 | 0.9000 | 0.9901 | 2.5000 |
-| rolling_63 | 0.9900 | 0.0083 | 1.0000 | 0.8000 | 1.0406 | 1.5000 |
-| simple_average_ensemble | 0.9500 | 0.0440 | 0.6000 | 1.0000 | 1.0052 | 2.3000 |
-| simple_average_ensemble | 0.9900 | 0.0105 | 0.8000 | 0.8000 | 1.0469 | 1.4000 |
-| validation_weighted_ensemble | 0.9500 | 0.0440 | 0.6000 | 1.0000 | 1.0052 | 2.3000 |
-| validation_weighted_ensemble | 0.9900 | 0.0105 | 0.8000 | 0.8000 | 1.0469 | 1.4000 |
+| egarch_t | 0.9500 | 0.0462 | 0.9000 | 0.9000 | 0.9569 | 2.3000 |
+| egarch_t | 0.9900 | 0.0081 | 0.9000 | 0.7000 | 0.9748 | 1.7000 |
+| ewma_094 | 0.9500 | 0.0488 | 0.9000 | 0.8000 | 0.9659 | 2.2000 |
+| ewma_094 | 0.9900 | 0.0077 | 0.8000 | 0.6000 | 1.0402 | 1.6000 |
+| ewma_rolling_update | 0.9500 | 0.0489 | 1.0000 | 0.9000 | 0.9638 | 2.0000 |
+| ewma_rolling_update | 0.9900 | 0.0088 | 0.8000 | 1.0000 | 1.0060 | 1.4000 |
+| ewma_tuned | 0.9500 | 0.0491 | 1.0000 | 0.8000 | 0.9674 | 2.1000 |
+| ewma_tuned | 0.9900 | 0.0086 | 0.8000 | 0.6000 | 1.0266 | 1.6000 |
+| garch_11 | 0.9500 | 0.0490 | 1.0000 | 0.9000 | 0.9702 | 2.2000 |
+| garch_11 | 0.9900 | 0.0091 | 1.0000 | 0.7000 | 0.9855 | 1.7000 |
+| garch_rolling_update | 0.9500 | 0.0490 | 1.0000 | 1.0000 | 0.9649 | 2.0000 |
+| garch_rolling_update | 0.9900 | 0.0088 | 0.8000 | 1.0000 | 0.9976 | 1.4000 |
+| gjr_garch | 0.9500 | 0.0458 | 0.9000 | 0.8000 | 0.9774 | 2.2000 |
+| gjr_garch | 0.9900 | 0.0086 | 0.8000 | 0.7000 | 0.9990 | 1.6000 |
+| gjr_rolling_update | 0.9500 | 0.0494 | 1.0000 | 1.0000 | 0.9612 | 2.0000 |
+| gjr_rolling_update | 0.9900 | 0.0088 | 0.8000 | 1.0000 | 0.9982 | 1.4000 |
+| har_rolling_update | 0.9500 | 0.0492 | 1.0000 | 0.9000 | 0.9624 | 2.0000 |
+| har_rolling_update | 0.9900 | 0.0087 | 0.8000 | 1.0000 | 1.0071 | 1.4000 |
+| har_rv_log_ridge | 0.9500 | 0.0497 | 1.0000 | 0.9000 | 0.9607 | 2.1000 |
+| har_rv_log_ridge | 0.9900 | 0.0083 | 0.8000 | 0.9000 | 1.0044 | 1.5000 |
+| har_rv_market_huber | 0.9500 | 0.0497 | 1.0000 | 0.9000 | 0.9607 | 2.0000 |
+| har_rv_market_huber | 0.9900 | 0.0084 | 0.8000 | 0.9000 | 1.0111 | 1.5000 |
+| har_rv_market_log_ridge | 0.9500 | 0.0503 | 1.0000 | 0.9000 | 0.9603 | 2.1000 |
+| har_rv_market_log_ridge | 0.9900 | 0.0084 | 0.8000 | 1.0000 | 1.0119 | 1.5000 |
+| hist_gradient_boosting | 0.9500 | 0.0411 | 0.7000 | 0.8000 | 0.9416 | 2.0000 |
+| hist_gradient_boosting | 0.9900 | 0.0066 | 0.7000 | 1.0000 | 0.9717 | 1.2000 |
+| previous_day_rv | 0.9500 | 0.0487 | 0.9000 | 0.9000 | 0.9637 | 2.0000 |
+| previous_day_rv | 0.9900 | 0.0084 | 0.8000 | 1.0000 | 1.0104 | 1.4000 |
+| random_forest | 0.9500 | 0.0409 | 0.7000 | 0.9000 | 0.9422 | 2.1000 |
+| random_forest | 0.9900 | 0.0065 | 0.7000 | 1.0000 | 0.9872 | 1.3000 |
+| rolling_21 | 0.9500 | 0.0487 | 0.9000 | 0.9000 | 0.9637 | 2.0000 |
+| rolling_21 | 0.9900 | 0.0084 | 0.8000 | 1.0000 | 1.0104 | 1.4000 |
+| rolling_63 | 0.9500 | 0.0411 | 0.6000 | 0.9000 | 0.9499 | 2.3000 |
+| rolling_63 | 0.9900 | 0.0062 | 0.6000 | 0.6000 | 1.0351 | 1.6000 |
+| simple_average_ensemble | 0.9500 | 0.0490 | 1.0000 | 1.0000 | 0.9614 | 2.1000 |
+| simple_average_ensemble | 0.9900 | 0.0081 | 0.8000 | 0.8000 | 1.0155 | 1.5000 |
+| validation_weighted_ensemble | 0.9500 | 0.0498 | 1.0000 | 0.9000 | 0.9636 | 2.1000 |
+| validation_weighted_ensemble | 0.9900 | 0.0083 | 0.8000 | 0.9000 | 1.0144 | 1.5000 |
 
 ## Regime Detection Summary
 
-| asset | top_decile_capture | false_high_flag_rate | high_regime_share | median_regime_days | transition_count |
-| --- | --- | --- | --- | --- | --- |
-| AAPL | 0.7797 | 0.6686 | 0.2353 | 5.0000 | 172 |
-| GLD | 0.8780 | 0.5782 | 0.2082 | 5.0000 | 169 |
-| IWM | 0.8441 | 0.6473 | 0.2394 | 6.0000 | 189 |
-| JPM | 0.7966 | 0.6216 | 0.2106 | 5.0000 | 169 |
-| MSFT | 0.7831 | 0.6495 | 0.2235 | 6.0000 | 202 |
-| NVDA | 0.9695 | 0.6011 | 0.2431 | 5.0000 | 206 |
-| QQQ | 0.7797 | 0.7096 | 0.2686 | 5.0000 | 168 |
-| SPY | 0.7661 | 0.6908 | 0.2479 | 9.0000 | 128 |
-| TLT | 0.8237 | 0.6478 | 0.2340 | 6.0000 | 201 |
-| USO | 0.9186 | 0.5824 | 0.2201 | 5.0000 | 188 |
+| asset | top_decile_capture | false_high_flag_rate | precision | recall | f1_score | false_positive_rate | high_regime_share | median_regime_days | transition_count |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| AAPL | 0.8211 | 0.5543 | 0.4457 | 0.8211 | 0.5778 | 0.1138 | 0.1848 | 8.0000 | 195 |
+| GLD | 0.8070 | 0.5944 | 0.4056 | 0.8070 | 0.5399 | 0.1318 | 0.1996 | 5.0000 | 258 |
+| IWM | 0.6246 | 0.6447 | 0.3553 | 0.6246 | 0.4529 | 0.1264 | 0.1763 | 5.0000 | 235 |
+| JPM | 0.7088 | 0.5968 | 0.4032 | 0.7088 | 0.5140 | 0.1170 | 0.1763 | 5.0000 | 196 |
+| MSFT | 0.7123 | 0.5662 | 0.4338 | 0.7123 | 0.5392 | 0.1037 | 0.1647 | 6.0000 | 176 |
+| NVDA | 0.9684 | 0.4491 | 0.5509 | 0.9684 | 0.7023 | 0.0880 | 0.1763 | 7.0000 | 176 |
+| QQQ | 0.7860 | 0.5676 | 0.4324 | 0.7860 | 0.5579 | 0.1150 | 0.1823 | 7.5000 | 171 |
+| SPY | 0.7123 | 0.5874 | 0.4126 | 0.7123 | 0.5225 | 0.1131 | 0.1732 | 9.0000 | 152 |
+| TLT | 0.6667 | 0.6008 | 0.3992 | 0.6667 | 0.4993 | 0.1119 | 0.1675 | 4.0000 | 260 |
+| USO | 0.7368 | 0.4928 | 0.5072 | 0.7368 | 0.6009 | 0.0798 | 0.1457 | 4.0000 | 216 |
 
 ## SQL Performance Summary
 
 | query_name | row_count | mean_ms | p50_ms | p95_ms | min_ms | max_ms | benchmark_rows | created_at |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| dashboard_overview | 1 | 7.8882 | 7.9175 | 8.2063 | 7.4985 | 8.2306 | 2512785 | 2026-05-22 11:51:04.770759 |
-| model_comparison | 15 | 2.7925 | 2.8161 | 3.1454 | 2.3866 | 3.2598 | 2512785 | 2026-05-22 11:51:04.770759 |
-| var_breach_summary | 300 | 0.5860 | 0.5644 | 0.7323 | 0.5070 | 0.8395 | 2512785 | 2026-05-22 11:51:04.770759 |
-| asset_risk_summary | 10 | 14.0997 | 14.1487 | 15.6461 | 12.6717 | 15.8876 | 2512785 | 2026-05-22 11:51:04.770759 |
-| portfolio_risk_summary | 15 | 1.9834 | 1.9680 | 2.2577 | 1.7558 | 2.3514 | 2512785 | 2026-05-22 11:51:04.770759 |
-| one_million_row_synthetic_scale | 10 | 5.8740 | 5.7446 | 6.2218 | 5.6035 | 6.2558 | 1188000 | 2026-05-22 11:51:04.770759 |
+| dashboard_overview | 1 | 8.0484 | 7.9538 | 8.6774 | 7.7034 | 9.0257 | 2873756 | 2026-05-22 16:20:37.062300 |
+| model_comparison | 19 | 2.9786 | 2.8271 | 4.0191 | 2.4373 | 4.7674 | 2873756 | 2026-05-22 16:20:37.062300 |
+| var_breach_summary | 380 | 0.6654 | 0.6348 | 0.8367 | 0.5579 | 0.9054 | 2873756 | 2026-05-22 16:20:37.062300 |
+| asset_risk_summary | 10 | 14.0022 | 13.3387 | 17.6724 | 12.2961 | 19.3739 | 2873756 | 2026-05-22 16:20:37.062300 |
+| portfolio_risk_summary | 19 | 2.3541 | 2.2619 | 2.9720 | 2.0615 | 3.4779 | 2873756 | 2026-05-22 16:20:37.062300 |
+| one_million_row_synthetic_scale | 10 | 6.2018 | 6.0050 | 6.9829 | 5.8069 | 7.2274 | 1144800 | 2026-05-22 16:20:37.062300 |
 
 ## Dashboard Screenshots
 
@@ -188,6 +208,7 @@ volatility-risk-forecasting-platform/
 
 The default pipeline uses `data/sample_prices.csv` so the repository runs offline without API keys.
 Live data can be requested with `--live`, in which case downloaded files are cached under `data/raw/` and excluded from version control.
+Generated reports explicitly state whether they were produced from live yfinance data or the sample fallback.
 The fixed universe is SPY, QQQ, IWM, TLT, GLD, USO, AAPL, MSFT, NVDA and JPM.
 
 ## Methodology
@@ -266,9 +287,9 @@ python -m black --check .
 
 ## CV Bullet Examples
 
-- Built a SQL-backed volatility forecasting and market risk platform using Python, DuckDB and Streamlit, comparing rolling, EWMA, GARCH-family and machine-learning models across a multi-asset universe; best aggregate model improved out-of-sample QLIKE by 0.63% vs rolling volatility and 4.76% vs EWMA.
-- Designed DuckDB SQL tables and validation views for prices, returns, realised volatility, forecasts, VaR/ES backtests and breach analytics, supporting reproducible risk reports and dashboard queries across 2,512,791+ persisted rows plus a 2,512,785-row scale benchmark.
-- Implemented validation-period empirical residual calibration for volatility-scaled VaR/ES, with Kupiec and Christoffersen backtests reported at asset/model level rather than cherry-picked.
+- Built a SQL-backed volatility forecasting and market risk platform using Python, DuckDB and Streamlit, comparing rolling, EWMA, GARCH-family, HAR-RV and machine-learning models across a fixed multi-asset universe; best aggregate model improved out-of-sample QLIKE by 40.41% vs rolling volatility and 83.15% vs EWMA.
+- Designed DuckDB SQL tables and validation views for prices, returns, realised volatility, forecasts, VaR/ES backtests and breach analytics, supporting reproducible risk reports and dashboard queries across 2,873,762+ persisted rows plus a 2,873,756-row scale benchmark.
+- Implemented validation-period Student-t residual calibration for volatility-scaled VaR/ES, with Kupiec and Christoffersen backtests reported at asset/model level rather than selected examples.
 
 ## Interview Talking Points
 

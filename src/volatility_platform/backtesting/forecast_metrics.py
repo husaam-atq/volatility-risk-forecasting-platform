@@ -21,7 +21,8 @@ def mae(y_true, y_pred) -> float:
 def qlike(y_true_vol, y_pred_vol) -> float:
     realised_var = np.maximum(np.asarray(y_true_vol, dtype=float) ** 2, EPS)
     forecast_var = np.maximum(np.asarray(y_pred_vol, dtype=float) ** 2, EPS)
-    return float(np.mean(realised_var / forecast_var + np.log(forecast_var)))
+    variance_ratio = realised_var / forecast_var
+    return float(np.mean(variance_ratio - np.log(variance_ratio) - 1.0))
 
 
 def mape(y_true, y_pred) -> float:

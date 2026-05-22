@@ -4,10 +4,14 @@ SELECT
     l.regime,
     COUNT(*) AS days,
     AVG(l.realised_vol) AS avg_realised_vol,
-    AVG(l.high_vol_flag) AS high_vol_share,
-    MAX(m.top_decile_capture) AS top_decile_capture,
-    MAX(m.false_high_flag_rate) AS false_high_flag_rate
-FROM regime_labels l
+            AVG(l.high_vol_flag) AS high_vol_share,
+            MAX(m.top_decile_capture) AS top_decile_capture,
+            MAX(m.false_high_flag_rate) AS false_high_flag_rate,
+            MAX(m.precision) AS precision,
+            MAX(m.recall) AS recall,
+            MAX(m.f1_score) AS f1_score,
+            MAX(m.false_positive_rate) AS false_positive_rate
+        FROM regime_labels l
 LEFT JOIN regime_metrics m
   ON l.asset = m.asset
 GROUP BY l.asset, l.regime;

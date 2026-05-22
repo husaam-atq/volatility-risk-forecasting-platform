@@ -12,6 +12,16 @@ Close-to-close volatility uses rolling squared daily returns. Parkinson volatili
 
 QLIKE compares realised variance with forecast variance and is the primary model-selection metric. It is commonly used in volatility forecasting because it is less distorted by noisy volatility proxies than simple squared-error metrics.
 
+The implementation uses the standard non-negative variance-ratio loss:
+
+```text
+QLIKE = realised_variance / forecast_variance
+        - log(realised_variance / forecast_variance)
+        - 1
+```
+
+This form is rank-equivalent to reduced QLIKE expressions that drop target-only constants, but it is preferable for percentage-improvement reporting because the loss has a stable zero point at a perfect forecast.
+
 ## Walk-Forward Validation
 
 The fixed split is:
@@ -28,7 +38,7 @@ Feature rows are keyed by forecast date. The target is joined on the next tradin
 
 ## VaR And Expected Shortfall
 
-Annualised volatility forecasts are converted to daily sigma. Validation-period empirical residual quantiles generate 95% and 99% VaR. Expected Shortfall uses the average validation residual beyond the VaR quantile.
+Annualised volatility forecasts are converted to daily sigma. Validation-period Student-t residual calibration generates 95% and 99% VaR. Expected Shortfall uses the calibrated left-tail Student-t residual severity.
 
 ## Kupiec And Christoffersen Tests
 

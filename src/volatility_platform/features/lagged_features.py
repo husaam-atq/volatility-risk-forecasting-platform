@@ -30,6 +30,8 @@ def build_volatility_features(prices: pd.DataFrame) -> pd.DataFrame:
         group["rv_10"] = np.sqrt(ret.pow(2).rolling(10, min_periods=10).mean() * ANNUALISATION)
         group["rv_21"] = np.sqrt(ret.pow(2).rolling(21, min_periods=21).mean() * ANNUALISATION)
         group["rv_63"] = np.sqrt(ret.pow(2).rolling(63, min_periods=63).mean() * ANNUALISATION)
+        group["rv_126"] = np.sqrt(ret.pow(2).rolling(126, min_periods=63).mean() * ANNUALISATION)
+        group["rv_252"] = np.sqrt(ret.pow(2).rolling(252, min_periods=126).mean() * ANNUALISATION)
         group["ewma_vol"] = ewma_volatility(ret)
         group["abs_return_1"] = ret.abs()
         group["abs_return_5"] = ret.abs().rolling(5, min_periods=5).mean()
@@ -59,6 +61,8 @@ def build_volatility_features(prices: pd.DataFrame) -> pd.DataFrame:
         "rv_10",
         "rv_21",
         "rv_63",
+        "rv_126",
+        "rv_252",
         "ewma_vol",
         "abs_return_1",
         "abs_return_5",
@@ -81,6 +85,8 @@ def feature_columns() -> list[str]:
         "rv_10",
         "rv_21",
         "rv_63",
+        "rv_126",
+        "rv_252",
         "ewma_vol",
         "abs_return_1",
         "abs_return_5",

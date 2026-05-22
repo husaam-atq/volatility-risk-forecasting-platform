@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 import pandas as pd
+from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.ensemble import HistGradientBoostingRegressor, RandomForestRegressor
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
@@ -21,22 +22,38 @@ def _period_mask(frame: pd.DataFrame, period: str) -> pd.Series:
     return frame["target_date"] > pd.Timestamp(VALIDATION_END)
 
 
+class QuantileClipper(BaseEstimator, TransformerMixin):
+    def __init__(self, lower: float = 0.01, upper: float = 0.99):
+        self.lower = lower
+        self.upper = upper
+
+    def fit(self, x, y=None):
+        values = np.asarray(x, dtype=float)
+        self.lower_bounds_ = np.nanquantile(values, self.lower, axis=0)
+        self.upper_bounds_ = np.nanquantile(values, self.upper, axis=0)
+        return self
+
+    def transform(self, x):
+        values = np.asarray(x, dtype=float)
+        return np.clip(values, self.lower_bounds_, self.upper_bounds_)
+
+
 def ml_forecasts(model_frame: pd.DataFrame) -> pd.DataFrame:
     features = feature_columns()
     rows = []
     estimators = {
         "random_forest": RandomForestRegressor(
-            n_estimators=180,
-            max_depth=8,
-            min_samples_leaf=8,
+            n_estimators=260,
+            max_depth=10,
+            min_samples_leaf=6,
             random_state=RANDOM_SEED,
             n_jobs=-1,
         ),
         "hist_gradient_boosting": HistGradientBoostingRegressor(
-            max_iter=220,
-            learning_rate=0.035,
-            max_leaf_nodes=18,
-            l2_regularization=0.02,
+            max_iter=320,
+            learning_rate=0.03,
+            max_leaf_nodes=20,
+            l2_regularization=0.04,
             random_state=RANDOM_SEED,
         ),
     }
@@ -49,7 +66,10 @@ def ml_forecasts(model_frame: pd.DataFrame) -> pd.DataFrame:
         y_train = group.loc[train_mask, "realised_vol"]
         score_mask = ~train_mask
         for model_name, estimator in estimators.items():
-            steps = [("imputer", SimpleImputer(strategy="median"))]
+            steps = [
+                ("imputer", SimpleImputer(strategy="median")),
+                ("clipper", QuantileClipper(lower=0.01, upper=0.99)),
+            ]
             if model_name == "hist_gradient_boosting":
                 steps.append(("scaler", StandardScaler()))
             steps.append(("model", estimator))
