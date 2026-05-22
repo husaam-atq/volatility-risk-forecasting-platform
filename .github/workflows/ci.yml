@@ -1,0 +1,46 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e .[dev]
+
+      - name: Compile Python
+        run: python -m compileall src app examples
+
+      - name: Run tests
+        run: python -m pytest -v
+
+      - name: Ruff
+        run: python -m ruff check .
+
+      - name: Black
+        run: python -m black --check .
+
+      - name: Lightweight database build
+        run: python examples/build_database.py
+
+      - name: Lightweight report generation
+        run: |
+          python examples/run_forecasting_pipeline.py
+          python examples/run_var_backtest.py
+          python examples/run_regime_detection.py
+          python examples/benchmark_sql_queries.py
+          python examples/generate_all_reports.py
