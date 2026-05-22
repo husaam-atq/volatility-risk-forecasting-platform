@@ -285,20 +285,6 @@ python -m black --check .
 - Add model-risk challenger reports and stability monitoring.
 - Add portfolio optimisation constraints and user-defined dashboard weights.
 
-## CV Bullet Examples
-
-- Built a SQL-backed volatility forecasting and market risk platform using Python, DuckDB and Streamlit, comparing rolling, EWMA, GARCH-family, HAR-RV and machine-learning models across a fixed multi-asset universe; best aggregate model improved out-of-sample QLIKE by 40.41% vs rolling volatility and 83.15% vs EWMA.
-- Designed DuckDB SQL tables and validation views for prices, returns, realised volatility, forecasts, VaR/ES backtests and breach analytics, supporting reproducible risk reports and dashboard queries across 2,873,762+ persisted rows plus a 2,873,756-row scale benchmark.
-- Implemented validation-period Student-t residual calibration for volatility-scaled VaR/ES, with Kupiec and Christoffersen backtests reported at asset/model level rather than selected examples.
-
-## Interview Talking Points
-
-- Why QLIKE is the primary volatility metric and why RMSE alone is not enough.
-- How forecast-date and target-date keys prevent future-data leakage.
-- Why validation-period calibration is acceptable but test-period calibration is not.
-- How DuckDB views make the dashboard reproducible and auditable.
-- What happens when GARCH, EWMA and tree models disagree during stress regimes.
-
 ## Reproducibility Notes
 
 The repository includes generated reports and benchmark CSVs from the latest local run.
