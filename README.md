@@ -21,12 +21,14 @@ The project combines reproducible market-data ingestion, database-first analytic
 - Statistical backtesting with Kupiec and Christoffersen tests.
 - Reporting discipline: weak metrics are shown rather than hidden.
 
-## Why It Matters For Quant And Risk Roles
+## Why It Matters
 
 Risk analytics work rarely stops at fitting a model. A useful platform needs data controls, SQL lineage, reproducible model outputs, independent validation and dashboard-ready summaries.
 This repository is designed to show that full workflow: from prices to forecasts, from forecasts to risk estimates, and from risk estimates to validation reports.
 
 ## Headline Results
+
+Testing: 88 pytest checks covering SQL schema, data quality, no-leakage controls, forecast metrics, VaR/ES backtesting, regime diagnostics and report consistency.
 
 - Latest generated report data source: `yfinance`.
 - Data date range: 2015-01-02 00:00:00 to 2026-05-20 00:00:00.
