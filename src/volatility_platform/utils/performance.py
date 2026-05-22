@@ -79,6 +79,7 @@ def run_sql_benchmarks(db_path: str | Path = DATABASE_PATH) -> pd.DataFrame:
         from volatility_platform.database.run_sql import run_sql_directory
 
         run_sql_directory(con, SQL_DIR)
-    REPORTS_DIR.mkdir(exist_ok=True)
-    bench.to_csv(REPORTS_DIR / "benchmark_results.csv", index=False)
+    if Path(db_path).resolve() == DATABASE_PATH.resolve():
+        REPORTS_DIR.mkdir(exist_ok=True)
+        bench.to_csv(REPORTS_DIR / "benchmark_results.csv", index=False)
     return bench

@@ -2,8 +2,8 @@
 
 ## Summary
 
-- Full database rebuild time: 1.253651 seconds.
-- Database file size: 57.01 MB.
+- Full database rebuild time: 1.368148 seconds.
+- Database file size: 57.26 MB.
 - Total persisted analytical rows: 2,873,762.
 - Largest benchmarked scale: 2,873,756 rows.
 
@@ -31,12 +31,12 @@
 
 | Query | Mean ms | p50 ms | p95 ms | Rows returned | Benchmark rows |
 |---|---:|---:|---:|---:|---:|
-| dashboard_overview | 8.048 | 7.954 | 8.677 | 1 | 2,873,756 |
-| model_comparison | 2.979 | 2.827 | 4.019 | 19 | 2,873,756 |
-| var_breach_summary | 0.665 | 0.635 | 0.837 | 380 | 2,873,756 |
-| asset_risk_summary | 14.002 | 13.339 | 17.672 | 10 | 2,873,756 |
-| portfolio_risk_summary | 2.354 | 2.262 | 2.972 | 19 | 2,873,756 |
-| one_million_row_synthetic_scale | 6.202 | 6.005 | 6.983 | 10 | 1,144,800 |
+| dashboard_overview | 8.153 | 8.072 | 8.910 | 1 | 2,873,756 |
+| model_comparison | 3.239 | 3.137 | 3.832 | 19 | 2,873,756 |
+| var_breach_summary | 0.717 | 0.687 | 0.887 | 380 | 2,873,756 |
+| asset_risk_summary | 14.343 | 13.856 | 16.138 | 10 | 2,873,756 |
+| portfolio_risk_summary | 2.474 | 2.345 | 3.131 | 19 | 2,873,756 |
+| one_million_row_synthetic_scale | 6.264 | 6.231 | 6.534 | 10 | 1,144,800 |
 
 ## Interpretation
 

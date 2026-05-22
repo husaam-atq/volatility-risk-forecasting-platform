@@ -32,6 +32,14 @@ def test_qlike_prefers_accurate_volatility_forecast():
     assert qlike(realised, realised) < qlike(realised, [0.30, 0.30, 0.30])
 
 
+def test_qlike_is_scale_consistent_for_volatility_inputs():
+    realised = [0.10, 0.20]
+    forecast = [0.20, 0.10]
+    assert qlike(realised, forecast) == qlike(
+        [x * 10 for x in realised], [x * 10 for x in forecast]
+    )
+
+
 def test_mape_handles_nonzero_volatility():
     assert mape([0.1, 0.2], [0.11, 0.18]) == pytest.approx(0.1)
 

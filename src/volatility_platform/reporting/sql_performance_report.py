@@ -65,3 +65,4 @@ def write_sql_performance_report(bench, db_path: str | Path = DATABASE_PATH) -> 
     (REPORTS_DIR / "sql_performance_report.md").write_text(
         "\n".join(lines) + "\n", encoding="utf-8"
     )
+    bench.to_csv(REPORTS_DIR / "benchmark_results.csv", index=False)

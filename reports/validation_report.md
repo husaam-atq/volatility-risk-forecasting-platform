@@ -18,25 +18,25 @@
 | 99% VaR breach rate 0.8%-1.2% | 0.81% | pass |
 | Kupiec not rejected for most assets | 85.79% | pass |
 | Christoffersen not rejected for most assets | 87.89% | pass |
-| ES tail-loss ratio 0.9-1.1 | 0.983 | pass |
+| ES tail-loss ratio 0.9-1.1 | 0.984 | pass |
 | Top-decile vol capture >= 75% | 75.44% | pass |
 | High-vol precision >= 40% | 43.46% | pass |
 | High-vol F1 >= 50% | 55.07% | pass |
 | False high-vol flag rate <= 60% | 56.54% | pass |
 | SQL handles 1m+ rows | 2,873,756 | pass |
-| Dashboard queries < 1 sec | 17.67 ms p95 | pass |
+| Dashboard queries < 1 sec | 16.14 ms p95 | pass |
 | Tests pass | passed | pass |
 
 ## Data Quality Checks
 
 | check_name | result_value | status | details | checked_at |
 | --- | --- | --- | --- | --- |
-| missing_price_values | 0.0000 | pass | Null OHLC or adjusted-close values in raw data. | 2026-05-22 16:19:39.252165 |
-| duplicate_asset_date_keys | 0.0000 | pass | Duplicate raw asset/date records before de-duplication. | 2026-05-22 16:19:39.252165 |
-| non_positive_prices | 0.0000 | pass | Non-positive OHLC or adjusted-close values. | 2026-05-22 16:19:39.252165 |
-| minimum_asset_coverage_days | 2862.0000 | pass | Minimum number of observations across assets. | 2026-05-22 16:19:39.252165 |
-| extreme_absolute_returns_gt_20pct | 4.0000 | pass | Daily absolute returns above 20%. | 2026-05-22 16:19:39.252165 |
-| clean_price_rows | 28620.0000 | pass | Rows after cleaning. | 2026-05-22 16:19:39.252165 |
+| missing_price_values | 0.0000 | pass | Null OHLC or adjusted-close values in raw data. | 2026-05-22 16:41:05.657263 |
+| duplicate_asset_date_keys | 0.0000 | pass | Duplicate raw asset/date records before de-duplication. | 2026-05-22 16:41:05.657263 |
+| non_positive_prices | 0.0000 | pass | Non-positive OHLC or adjusted-close values. | 2026-05-22 16:41:05.657263 |
+| minimum_asset_coverage_days | 2862.0000 | pass | Minimum number of observations across assets. | 2026-05-22 16:41:05.657263 |
+| extreme_absolute_returns_gt_20pct | 4.0000 | pass | Daily absolute returns above 20%. | 2026-05-22 16:41:05.657263 |
+| clean_price_rows | 28620.0000 | pass | Rows after cleaning. | 2026-05-22 16:41:05.657263 |
 
 ## SQL Validation Checks
 

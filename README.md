@@ -42,7 +42,7 @@ This repository is designed to show that full workflow: from prices to forecasts
 - Average high-volatility F1 score: 55.07%.
 - Average false high-volatility flag rate: 56.54%.
 - Largest SQL scale benchmark: 2,873,756 rows.
-- Dashboard query p95 latency: 17.67 ms.
+- Dashboard query p95 latency: 16.14 ms.
 
 ## Target Achievement
 
@@ -56,13 +56,13 @@ This repository is designed to show that full workflow: from prices to forecasts
 | 99% VaR breach rate 0.8%-1.2% | 0.81% | pass |
 | Kupiec not rejected for most assets | 85.79% | pass |
 | Christoffersen not rejected for most assets | 87.89% | pass |
-| ES tail-loss ratio 0.9-1.1 | 0.983 | pass |
+| ES tail-loss ratio 0.9-1.1 | 0.984 | pass |
 | Top-decile vol capture >= 75% | 75.44% | pass |
 | High-vol precision >= 40% | 43.46% | pass |
 | High-vol F1 >= 50% | 55.07% | pass |
 | False high-vol flag rate <= 60% | 56.54% | pass |
 | SQL handles 1m+ rows | 2,873,756 | pass |
-| Dashboard queries < 1 sec | 17.67 ms p95 | pass |
+| Dashboard queries < 1 sec | 16.14 ms p95 | pass |
 | Tests pass | passed | pass |
 
 ## SQL Architecture Summary
@@ -78,21 +78,21 @@ Dashboard sections are backed by SQL views such as `v_dashboard_overview`, `v_mo
 | garch_rolling_update | 0.0056 | 2.4000 | 0.5000 | 0.4010 | 0.8307 | 0.9145 |
 | gjr_rolling_update | 0.0056 | 2.5000 | 0.6000 | 0.3979 | 0.8298 | 0.9138 |
 | ewma_rolling_update | 0.0057 | 3.3000 | 0.1000 | 0.3938 | 0.8286 | 0.9135 |
-| validation_weighted_ensemble | 0.0079 | 5.6000 | 0.0000 | 0.1656 | 0.7639 | 0.8815 |
+| validation_weighted_ensemble | 0.0079 | 5.6000 | 0.0000 | 0.1653 | 0.7638 | 0.8815 |
 | har_rv_market_huber | 0.0091 | 7.3000 | 0.0000 | 0.0128 | 0.7204 | 0.8586 |
 | previous_day_rv | 0.0093 | 7.9000 | 0.0000 | 0.0000 | 0.7172 | 0.8567 |
 | rolling_21 | 0.0093 | 7.9000 | 0.0000 | 0.0000 | 0.7172 | 0.8567 |
 | har_rv_log_ridge | 0.0094 | 7.9000 | 0.0000 | -0.0126 | 0.7133 | 0.8562 |
-| simple_average_ensemble | 0.0096 | 9.3000 | 0.0000 | -0.0281 | 0.7093 | 0.8547 |
+| simple_average_ensemble | 0.0096 | 9.3000 | 0.0000 | -0.0282 | 0.7092 | 0.8547 |
 | har_rv_market_log_ridge | 0.0097 | 9.1000 | 0.0000 | -0.0368 | 0.7065 | 0.8530 |
-| random_forest | 0.0235 | 12.8000 | 0.0000 | -1.7601 | 0.2136 | 0.6103 |
-| hist_gradient_boosting | 0.0269 | 13.6000 | 0.0000 | -2.1146 | 0.1121 | 0.5701 |
+| random_forest | 0.0235 | 12.8000 | 0.0000 | -1.7592 | 0.2139 | 0.6105 |
+| hist_gradient_boosting | 0.0269 | 13.6000 | 0.0000 | -2.1083 | 0.1137 | 0.5707 |
 | ewma_tuned | 0.0293 | 13.8000 | 0.0000 | -2.1536 | 0.1073 | 0.5501 |
 | ewma_094 | 0.0331 | 14.4000 | 0.0000 | -2.5678 | 0.0000 | 0.4881 |
 | garch_11 | 0.0741 | 16.5000 | 0.0000 | -6.6866 | -1.1789 | 0.0000 |
-| egarch_t | 0.0761 | 16.9000 | 0.0000 | -7.2392 | -1.3267 | -0.1267 |
+| egarch_t | 0.0761 | 16.9000 | 0.0000 | -7.2391 | -1.3267 | -0.1267 |
 | rolling_63 | 0.0999 | 17.8000 | 0.0000 | -9.9984 | -2.0768 | -0.6198 |
-| gjr_garch | 0.1580 | 18.2000 | 0.0000 | -16.1720 | -3.6690 | -1.5115 |
+| gjr_garch | 0.1580 | 18.2000 | 0.0000 | -16.1721 | -3.6691 | -1.5115 |
 
 ## VaR And ES Backtesting Summary
 
@@ -122,18 +122,18 @@ Dashboard sections are backed by SQL views such as `v_dashboard_overview`, `v_mo
 | har_rv_market_huber | 0.9900 | 0.0084 | 0.8000 | 0.9000 | 1.0111 | 1.5000 |
 | har_rv_market_log_ridge | 0.9500 | 0.0503 | 1.0000 | 0.9000 | 0.9603 | 2.1000 |
 | har_rv_market_log_ridge | 0.9900 | 0.0084 | 0.8000 | 1.0000 | 1.0119 | 1.5000 |
-| hist_gradient_boosting | 0.9500 | 0.0411 | 0.7000 | 0.8000 | 0.9416 | 2.0000 |
-| hist_gradient_boosting | 0.9900 | 0.0066 | 0.7000 | 1.0000 | 0.9717 | 1.2000 |
+| hist_gradient_boosting | 0.9500 | 0.0411 | 0.7000 | 0.8000 | 0.9417 | 2.0000 |
+| hist_gradient_boosting | 0.9900 | 0.0064 | 0.7000 | 1.0000 | 0.9856 | 1.2000 |
 | previous_day_rv | 0.9500 | 0.0487 | 0.9000 | 0.9000 | 0.9637 | 2.0000 |
 | previous_day_rv | 0.9900 | 0.0084 | 0.8000 | 1.0000 | 1.0104 | 1.4000 |
-| random_forest | 0.9500 | 0.0409 | 0.7000 | 0.9000 | 0.9422 | 2.1000 |
-| random_forest | 0.9900 | 0.0065 | 0.7000 | 1.0000 | 0.9872 | 1.3000 |
+| random_forest | 0.9500 | 0.0409 | 0.7000 | 0.9000 | 0.9423 | 2.1000 |
+| random_forest | 0.9900 | 0.0065 | 0.7000 | 1.0000 | 0.9873 | 1.3000 |
 | rolling_21 | 0.9500 | 0.0487 | 0.9000 | 0.9000 | 0.9637 | 2.0000 |
 | rolling_21 | 0.9900 | 0.0084 | 0.8000 | 1.0000 | 1.0104 | 1.4000 |
 | rolling_63 | 0.9500 | 0.0411 | 0.6000 | 0.9000 | 0.9499 | 2.3000 |
 | rolling_63 | 0.9900 | 0.0062 | 0.6000 | 0.6000 | 1.0351 | 1.6000 |
-| simple_average_ensemble | 0.9500 | 0.0490 | 1.0000 | 1.0000 | 0.9614 | 2.1000 |
-| simple_average_ensemble | 0.9900 | 0.0081 | 0.8000 | 0.8000 | 1.0155 | 1.5000 |
+| simple_average_ensemble | 0.9500 | 0.0491 | 1.0000 | 1.0000 | 0.9610 | 2.1000 |
+| simple_average_ensemble | 0.9900 | 0.0081 | 0.8000 | 0.8000 | 1.0154 | 1.5000 |
 | validation_weighted_ensemble | 0.9500 | 0.0498 | 1.0000 | 0.9000 | 0.9636 | 2.1000 |
 | validation_weighted_ensemble | 0.9900 | 0.0083 | 0.8000 | 0.9000 | 1.0144 | 1.5000 |
 
@@ -156,12 +156,12 @@ Dashboard sections are backed by SQL views such as `v_dashboard_overview`, `v_mo
 
 | query_name | row_count | mean_ms | p50_ms | p95_ms | min_ms | max_ms | benchmark_rows | created_at |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| dashboard_overview | 1 | 8.0484 | 7.9538 | 8.6774 | 7.7034 | 9.0257 | 2873756 | 2026-05-22 16:20:37.062300 |
-| model_comparison | 19 | 2.9786 | 2.8271 | 4.0191 | 2.4373 | 4.7674 | 2873756 | 2026-05-22 16:20:37.062300 |
-| var_breach_summary | 380 | 0.6654 | 0.6348 | 0.8367 | 0.5579 | 0.9054 | 2873756 | 2026-05-22 16:20:37.062300 |
-| asset_risk_summary | 10 | 14.0022 | 13.3387 | 17.6724 | 12.2961 | 19.3739 | 2873756 | 2026-05-22 16:20:37.062300 |
-| portfolio_risk_summary | 19 | 2.3541 | 2.2619 | 2.9720 | 2.0615 | 3.4779 | 2873756 | 2026-05-22 16:20:37.062300 |
-| one_million_row_synthetic_scale | 10 | 6.2018 | 6.0050 | 6.9829 | 5.8069 | 7.2274 | 1144800 | 2026-05-22 16:20:37.062300 |
+| dashboard_overview | 1 | 8.1529 | 8.0724 | 8.9104 | 7.6357 | 9.2214 | 2873756 | 2026-05-22 16:42:07.325510 |
+| model_comparison | 19 | 3.2389 | 3.1368 | 3.8320 | 2.7686 | 3.9398 | 2873756 | 2026-05-22 16:42:07.325510 |
+| var_breach_summary | 380 | 0.7171 | 0.6868 | 0.8868 | 0.5888 | 0.9702 | 2873756 | 2026-05-22 16:42:07.325510 |
+| asset_risk_summary | 10 | 14.3434 | 13.8564 | 16.1382 | 13.2163 | 16.5441 | 2873756 | 2026-05-22 16:42:07.325510 |
+| portfolio_risk_summary | 19 | 2.4738 | 2.3446 | 3.1312 | 2.0691 | 3.5060 | 2873756 | 2026-05-22 16:42:07.325510 |
+| one_million_row_synthetic_scale | 10 | 6.2641 | 6.2310 | 6.5336 | 6.0207 | 6.5708 | 1144800 | 2026-05-22 16:42:07.325510 |
 
 ## Dashboard Screenshots
 

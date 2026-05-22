@@ -55,8 +55,9 @@ def build_database(
         run_sql_directory(con, SQL_DIR)
 
     elapsed = time.perf_counter() - started
-    REPORTS_DIR.mkdir(exist_ok=True)
-    (REPORTS_DIR / "database_build_time.txt").write_text(f"{elapsed:.6f}\n", encoding="utf-8")
+    if db_path.resolve() == DATABASE_PATH.resolve():
+        REPORTS_DIR.mkdir(exist_ok=True)
+        (REPORTS_DIR / "database_build_time.txt").write_text(f"{elapsed:.6f}\n", encoding="utf-8")
     return {
         "db_path": str(db_path),
         "source": "live" if use_live else "sample",

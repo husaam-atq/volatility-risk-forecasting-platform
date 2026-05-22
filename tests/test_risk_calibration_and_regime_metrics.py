@@ -63,6 +63,36 @@ def test_var_breach_logic_marks_losses_beyond_var():
     assert test_breaches["breach"].sum() >= 1
 
 
+def test_var_calibration_does_not_depend_on_test_returns():
+    dates = pd.bdate_range("2020-01-02", periods=90)
+    forecasts = pd.DataFrame(
+        {
+            "asset": "SPY",
+            "model": "unit_model",
+            "forecast_date": dates,
+            "target_date": dates + pd.offsets.BDay(1),
+            "forecast_vol": 0.12,
+            "period": ["validation"] * 60 + ["test"] * 30,
+        }
+    )
+    base_returns = pd.DataFrame(
+        {
+            "asset": "SPY",
+            "date": dates + pd.offsets.BDay(1),
+            "simple_return": [-0.005] * 60 + [0.001] * 30,
+        }
+    )
+    shocked_returns = base_returns.copy()
+    shocked_returns.loc[shocked_returns.index >= 60, "simple_return"] = -0.50
+    base_var, _, _, _ = calculate_var_es(forecasts, base_returns, confidence_levels=[0.95])
+    shocked_var, _, _, _ = calculate_var_es(forecasts, shocked_returns, confidence_levels=[0.95])
+    base_test_var = base_var.loc[base_var["period"] == "test", "var_return"].reset_index(drop=True)
+    shocked_test_var = shocked_var.loc[shocked_var["period"] == "test", "var_return"].reset_index(
+        drop=True
+    )
+    assert base_test_var.equals(shocked_test_var)
+
+
 def test_regime_classification_metrics_known_case():
     scores = classification_metrics(
         pd.Series([1, 1, 0, 0, 1, 0]),
