@@ -172,7 +172,6 @@ The screenshots below were captured from the local Streamlit dashboard after the
 ![Dashboard overview](docs/images/dashboard_overview.png)
 ![SQL pipeline](docs/images/sql_pipeline.png)
 ![Model comparison](docs/images/model_comparison.png)
-![Volatility forecasts](docs/images/volatility_forecasts.png)
 ![VaR backtesting](docs/images/var_backtesting.png)
 ![Breach analysis](docs/images/breach_analysis.png)
 ![Regime detection](docs/images/regime_detection.png)
